@@ -1,0 +1,100 @@
+package example.hemp;
+
+
+import java.util.HashMap;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import example.hemp.util.Config;
+
+
+
+
+
+public class Main extends JavaPlugin implements Listener {
+
+	public static Config c = Config.getInstance();
+	 public static HashMap<String, Boolean> tasks = new HashMap<String, Boolean>();
+	private static Main instance;
+	public static Main getInstance( ) {
+		return instance;
+	}
+
+	public void onEnable() {
+		instance = this;
+		getLogger().severe(String.format("[%s] Loaded spawn plugin v1.0\nContinue with your day sir.", new Object[] { getDescription().getName() }));
+	    PluginManager pm = getServer().getPluginManager();
+	    pm.registerEvents(this, this);
+		c.setup(this);
+		
+		
+	}
+	
+	//Method to check if the hashmap for the player equals true
+	public static boolean hasCooldown(Player player)
+	  {
+	    return tasks.containsKey(player.getName()) ? 
+	      ((Boolean)tasks.get(player.getName())).booleanValue() : false;
+	  } 
+	
+	@SuppressWarnings("deprecation")
+	@EventHandler
+	public void onClick(PlayerInteractEvent e) {
+	//Define the player
+	Player p = e.getPlayer();
+	//Define the item in their hand and ask for the type
+	Material mat = p.getItemInHand().getType();
+	//Define the item in their hand
+	ItemStack mainHand = p.getItemInHand();
+	//Define the items meta
+	ItemMeta name = mainHand.getItemMeta();
+	//Now were going to make something happen on the event of right clicking with the item
+	 
+	//Check if the player right clicks air or a block
+	if(e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
+		
+	//Check if it's a blaze rod & equals the desired name
+	if(mat == Material.BLAZE_ROD && name.getDisplayName().equalsIgnoreCase("the name youre trying to get")){
+		//Now well check if they dont have the cooldown then add them to it after first use
+		if (!hasCooldown(p)) {
+			//Set the value of them having the cooldown to true
+			tasks.put(p.getName(), Boolean.valueOf(true));
+			//(event) Now do the stuff you wish to do with the player (youre on your own with this part)
+			
+		
+	//Make some magic happen
+		Bukkit.getScheduler().scheduleAsyncDelayedTask((Plugin)this, new Runnable() {
+		
+			@Override
+		public void run()
+          {
+			//Now check if the player has the cooldown and set the value to false while re-creating the desired event stated from above.
+			if (hasCooldown(p))
+   	        {
+				tasks.put(p.getName(), Boolean.valueOf(false));
+				//(event) Re-creating the event from above
+   	        }
+
+			
+        	  
+          }
+        }, 20L * 3L/*Set the amount of time you want your cooldown where 3 is placed. (in seconds)*/);
+		//
+	}
+        return;
+			}
+		}
+	}
+	 
+}
